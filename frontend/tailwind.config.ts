@@ -7,26 +7,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#f0f7ff",
-          100: "#e0efff",
-          200: "#b9dfff",
-          300: "#7cc4ff",
-          400: "#36a5ff",
-          500: "#0c87f2",
-          600: "#0068cf",
-          700: "#0053a8",
-          800: "#04478a",
-          900: "#0a3c72",
-          950: "#07264b",
-        },
-        accent: {
-          500: "#f59e0b",
-          600: "#d97706",
-        },
+        primary: "#135bec",
+        "bg-light": "#f6f6f8",
+        "bg-dark": "#101622",
+        surface: "#f5f5f7",
+        border: "#f0f2f4",
+        "text-primary": "#111318",
+        "text-secondary": "#6e6e73",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
+        full: "9999px",
       },
     },
   },
