@@ -15,9 +15,9 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-[1200px] mx-auto px-6 py-20 text-center">
         <h1 className="text-2xl font-bold mb-4">Nothing to Checkout</h1>
-        <Link href="/products" className="text-blue-600 hover:underline font-medium">
+        <Link href="/products" className="text-primary hover:underline font-medium">
           Browse products &rarr;
         </Link>
       </div>
@@ -54,8 +54,6 @@ export default function CheckoutPage() {
     if (!address) return;
 
     setSubmitting(true);
-
-    // Simulate payment processing
     setTimeout(() => {
       placeOrder(address);
       router.push("/order-confirmation");
@@ -63,67 +61,67 @@ export default function CheckoutPage() {
   }
 
   const inputClass = (field: string) =>
-    `w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-      errors[field] ? "border-red-400" : "border-gray-300"
+    `w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary ${
+      errors[field] ? "border-red-400" : "border-gray-200"
     }`;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1200px] mx-auto px-6 py-12">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-blue-600">Home</Link>
-        <span className="mx-2">/</span>
-        <Link href="/cart" className="hover:text-blue-600">Cart</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-900 font-medium">Checkout</span>
+      <nav className="flex items-center gap-2 text-sm text-[#6e6e73] mb-8">
+        <Link href="/" className="hover:text-primary">Home</Link>
+        <span className="material-symbols-outlined text-sm">chevron_right</span>
+        <Link href="/cart" className="hover:text-primary">Cart</Link>
+        <span className="material-symbols-outlined text-sm">chevron_right</span>
+        <span className="text-[#111318] font-medium">Checkout</span>
       </nav>
 
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      <h1 className="text-3xl font-bold mb-8 tracking-tight">Checkout</h1>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Address form */}
           <div className="lg:col-span-3 space-y-6">
-            <div className="border border-gray-200 rounded-xl p-6">
-              <h2 className="font-bold text-lg mb-4">Shipping Address</h2>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h2 className="font-bold text-lg mb-6">Shipping Address</h2>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Full Name *</label>
                     <input name="fullName" className={inputClass("fullName")} placeholder="Rakesh Kumar" />
                     {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Phone *</label>
                     <input name="phone" type="tel" className={inputClass("phone")} placeholder="9876543210" />
                     {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Email *</label>
                   <input name="email" type="email" className={inputClass("email")} placeholder="you@example.com" />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Address Line 1 *</label>
                   <input name="line1" className={inputClass("line1")} placeholder="Flat/Building, Street" />
                   {errors.line1 && <p className="text-red-500 text-xs mt-1">{errors.line1}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Address Line 2</label>
                   <input name="line2" className={inputClass("line2")} placeholder="Area, Landmark" />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">City</label>
                     <input name="city" defaultValue="Bangalore" className={inputClass("city")} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">State</label>
                     <input name="state" defaultValue="Karnataka" className={inputClass("state")} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Pincode *</label>
                     <input name="pincode" className={inputClass("pincode")} placeholder="560001" maxLength={6} />
                     {errors.pincode && <p className="text-red-500 text-xs mt-1">{errors.pincode}</p>}
                   </div>
@@ -132,25 +130,25 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery info */}
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                <div>
-                  <p className="text-green-800 font-medium text-sm">Free delivery within 48 hours</p>
-                  <p className="text-green-700 text-xs mt-0.5">Our team will assemble the chair at your location</p>
-                </div>
-              </div>
+            <div className="p-6 rounded-xl bg-primary/5 border border-primary/10">
+              <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">local_shipping</span>
+                Free 48-hour Delivery
+              </h4>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Our team will deliver and assemble your chair at your location within 48 hours. Completely free of cost across Bangalore.
+              </p>
             </div>
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-2">
-            <div className="border border-gray-200 rounded-xl p-6 sticky top-24">
-              <h2 className="font-bold text-lg mb-4">Order Summary</h2>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 sticky top-24 shadow-sm">
+              <h2 className="font-bold text-lg mb-6">Order Summary</h2>
               <div className="space-y-3 mb-4">
                 {items.map((item) => (
                   <div key={`${item.product.slug}-${item.selectedColor}`} className="flex justify-between text-sm">
-                    <span className="text-gray-600 truncate mr-2">
+                    <span className="text-[#6e6e73] truncate mr-2">
                       {item.product.name} <span className="text-gray-400">x{item.quantity}</span>
                     </span>
                     <span className="font-medium flex-shrink-0">
@@ -159,33 +157,40 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
-              <div className="border-t pt-3 space-y-2 text-sm">
+              <div className="border-t border-gray-200 pt-3 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span>&#8377;{formatPrice(subtotal())}</span>
+                  <span className="text-[#6e6e73]">Subtotal</span>
+                  <span className="font-medium">&#8377;{formatPrice(subtotal())}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">GST (18%)</span>
-                  <span>&#8377;{formatPrice(gst())}</span>
+                  <span className="text-[#6e6e73]">GST (18%)</span>
+                  <span className="font-medium">&#8377;{formatPrice(gst())}</span>
                 </div>
                 <div className="flex justify-between text-green-600">
                   <span>Delivery</span>
                   <span className="font-medium">FREE</span>
                 </div>
-                <div className="border-t pt-3 flex justify-between font-bold text-lg">
+                <div className="border-t border-gray-200 pt-3 flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>&#8377;{formatPrice(total())}</span>
+                  <span className="text-primary">&#8377;{formatPrice(total())}</span>
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full mt-5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3.5 rounded-lg transition shadow-lg shadow-blue-600/20"
+                className="w-full mt-6 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
-                {submitting ? "Processing..." : `Pay ₹${formatPrice(total())}`}
+                {submitting ? (
+                  <>Processing...</>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">lock</span>
+                    Pay &#8377;{formatPrice(total())}
+                  </>
+                )}
               </button>
-              <p className="text-xs text-gray-400 text-center mt-3">
+              <p className="text-[10px] text-gray-400 text-center mt-3 italic">
                 Secure payment via Razorpay. UPI, cards, and net banking accepted.
               </p>
             </div>

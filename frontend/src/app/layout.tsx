@@ -5,17 +5,17 @@ import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "Universal Ergonomics | Premium Office Chairs - Bangalore",
+    default: "Universal Ergonomics | Premium Ergonomic Seating",
     template: "%s | Universal Ergonomics",
   },
   description:
-    "Factory-direct office chairs with free 48-hour delivery and on-site assembly in Bangalore. Executive, ergonomic, gaming, and bulk B2B chairs.",
+    "Premium ergonomic office chairs. Factory-direct pricing with free delivery and on-site assembly. Executive, ergonomic, gaming, and wholesale chairs.",
   keywords: [
-    "office chairs bangalore",
-    "ergonomic chairs india",
-    "buy office chair online",
-    "bulk office furniture",
-    "gaming chair bangalore",
+    "ergonomic chairs",
+    "office chairs",
+    "gaming chairs",
+    "wholesale furniture",
+    "premium seating",
   ],
 };
 
@@ -26,7 +26,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-screen flex flex-col bg-white text-[#111318] antialiased">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
