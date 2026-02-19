@@ -47,7 +47,7 @@ class Address(Base):
     phone: Mapped[str] = mapped_column(String(15))
     line1: Mapped[str] = mapped_column(String(255))
     line2: Mapped[str] = mapped_column(String(255), nullable=True)
-    city: Mapped[str] = mapped_column(String(100), default="Bangalore")
+    city: Mapped[str] = mapped_column(String(100), default="Bengaluru")
     state: Mapped[str] = mapped_column(String(100), default="Karnataka")
     pincode: Mapped[str] = mapped_column(String(10))
     latitude: Mapped[float] = mapped_column(Numeric(9, 6), nullable=True)

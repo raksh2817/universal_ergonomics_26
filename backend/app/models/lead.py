@@ -12,7 +12,7 @@ from app.core.database import Base
 
 
 class Lead(Base):
-    """B2B lead for startups and SMEs in Bangalore."""
+    """B2B lead for startups and SMEs in Bengaluru."""
     __tablename__ = "leads"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

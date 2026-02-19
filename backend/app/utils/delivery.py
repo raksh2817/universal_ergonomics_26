@@ -1,4 +1,4 @@
-"""Delivery zone and logistics utilities for Bangalore operations."""
+"""Delivery zone and logistics utilities for Bengaluru operations."""
 
 import math
 from app.core.config import settings
@@ -22,8 +22,8 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 def is_free_delivery(pincode_lat: float, pincode_lng: float) -> bool:
     """Check if a delivery address qualifies for free 48-hour delivery."""
     distance = haversine_km(
-        settings.BANGALORE_CENTER_LAT,
-        settings.BANGALORE_CENTER_LNG,
+        settings.Bengaluru_CENTER_LAT,
+        settings.Bengaluru_CENTER_LNG,
         pincode_lat,
         pincode_lng,
     )
@@ -33,8 +33,8 @@ def is_free_delivery(pincode_lat: float, pincode_lng: float) -> bool:
 def get_delivery_estimate(pincode_lat: float, pincode_lng: float) -> dict:
     """Return delivery cost and time estimate."""
     distance = haversine_km(
-        settings.BANGALORE_CENTER_LAT,
-        settings.BANGALORE_CENTER_LNG,
+        settings.Bengaluru_CENTER_LAT,
+        settings.Bengaluru_CENTER_LNG,
         pincode_lat,
         pincode_lng,
     )
@@ -44,10 +44,10 @@ def get_delivery_estimate(pincode_lat: float, pincode_lng: float) -> dict:
             "delivery_charge": 0,
             "estimated_hours": settings.DELIVERY_PROMISE_HOURS,
             "includes_assembly": True,
-            "zone": "bangalore_metro",
+            "zone": "Bengaluru_metro",
         }
     else:
-        # Outside Bangalore — use logistics partner
+        # Outside Bengaluru — use logistics partner
         return {
             "delivery_charge": 500 + (distance - settings.FREE_DELIVERY_RADIUS_KM) * 10,
             "estimated_hours": 120,  # 5 days

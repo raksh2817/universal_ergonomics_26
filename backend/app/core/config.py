@@ -48,8 +48,8 @@ class Settings(BaseSettings):
     # Delivery
     FREE_DELIVERY_RADIUS_KM: int = 50
     DELIVERY_PROMISE_HOURS: int = 48
-    BANGALORE_CENTER_LAT: float = 12.9716
-    BANGALORE_CENTER_LNG: float = 77.5946
+    Bengaluru_CENTER_LAT: float = 12.9716
+    Bengaluru_CENTER_LNG: float = 77.5946
 
     # B2B
     B2B_MIN_ORDER_QUANTITY: int = 5
