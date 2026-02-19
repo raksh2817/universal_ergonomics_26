@@ -7,7 +7,7 @@ Higher score = more likely to convert. Used to prioritize sales outreach.
 Scoring Factors:
   - Employee count (proxy for order size)
   - Industry fit (tech companies are primary target)
-  - Location (Bangalore = higher score due to free delivery moat)
+  - Location (Bengaluru = higher score due to free delivery moat)
   - Estimated quantity
   - Engagement signals (page views, quote requests, etc.)
 """
@@ -18,7 +18,7 @@ from typing import Optional
 from app.models.lead import Lead
 
 
-# Industry weights — tech companies in Bangalore are the sweet spot
+# Industry weights — tech companies in Bengaluru are the sweet spot
 INDUSTRY_WEIGHTS = {
     "technology": 20,
     "software": 20,

@@ -21,9 +21,9 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="max-w-[1200px] mx-auto px-6 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-        <p className="text-[#6e6e73] mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-10 py-16 text-center">
+        <h1 className="font-display text-2xl mb-4">Product Not Found</h1>
+        <p className="text-muted mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
         <Link href="/products" className="text-primary hover:underline font-medium">
           Browse all chairs &rarr;
         </Link>
@@ -35,7 +35,7 @@ export default function ProductDetailPage() {
   const discount = getDiscount(product);
   const related = getProductsByCategory(product.category)
     .filter((p) => p.slug !== product.slug)
-    .slice(0, 5);
+    .slice(0, 4);
 
   const wholesalePrice = Math.round(product.selling_price * 0.85);
   const unitPrice = isWholesale ? wholesalePrice : product.selling_price;
@@ -48,101 +48,111 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 md:px-20 py-8">
+    <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-10 py-6 md:py-8">
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
-        <Link href="/" className="hover:text-primary">Home</Link>
-        <span className="material-symbols-outlined text-sm">chevron_right</span>
-        <Link href="/products" className="hover:text-primary">All Chairs</Link>
-        <span className="material-symbols-outlined text-sm">chevron_right</span>
-        <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-primary">
+      <nav className="flex items-center gap-2 text-sm text-faint mb-6 flex-wrap">
+        <Link href="/" className="hover:text-foreground transition">Home</Link>
+        <span>/</span>
+        <Link href="/products" className="hover:text-foreground transition">All Chairs</Link>
+        <span>/</span>
+        <Link
+          href={`/products?category=${encodeURIComponent(product.category)}`}
+          className="hover:text-foreground transition"
+        >
           {product.category}
         </Link>
-        <span className="material-symbols-outlined text-sm">chevron_right</span>
-        <span className="text-gray-900 font-medium">{product.name}</span>
+        <span>/</span>
+        <span className="text-foreground font-medium">{product.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Left Column: Image & Specs */}
-        <div className="lg:col-span-7 space-y-12">
-          <div className="aspect-[4/3] bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center relative">
-            <ProductImage product={product} className="w-full h-full object-contain p-8" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        {/* Left: Image */}
+        <div className="lg:col-span-7 space-y-8">
+          <div className="bg-warm-bg rounded-2xl overflow-hidden aspect-[4/5] flex items-center justify-center p-6 lg:p-10 relative">
+            <ProductImage
+              product={product}
+              className="w-full h-full object-contain"
+            />
             {isWholesale && (
-              <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-bold rounded-full uppercase tracking-wider">
+              <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded">
                 Wholesale Pricing
               </span>
             )}
           </div>
 
-          <section className="bg-white rounded-2xl p-8 border border-gray-100">
-            <h3 className="text-xl font-bold mb-6">Technical Specifications</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              {Object.entries(product.specs).map(([key, value]) => (
-                <div key={key} className="flex items-start gap-4">
-                  <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">
-                    settings
+          {/* Specs Table */}
+          <section className="bg-surface-raised rounded-xl border border-[var(--color-border)] overflow-hidden">
+            <div className="p-5 lg:p-6 border-b border-[var(--color-border)]">
+              <h3 className="font-display text-xl text-foreground">Technical Specifications</h3>
+            </div>
+            <div className="divide-y divide-[var(--color-border)]">
+              {Object.entries(product.specs).map(([key, value], idx) => (
+                <div
+                  key={key}
+                  className={`flex justify-between px-5 lg:px-6 py-3.5 ${
+                    idx % 2 === 0 ? "" : "bg-surface-muted"
+                  }`}
+                >
+                  <span className="text-sm font-medium text-foreground">{key}</span>
+                  <span className="text-sm text-muted font-mono">
+                    {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
                   </span>
-                  <div>
-                    <p className="text-sm font-bold">{key}</p>
-                    <p className="text-sm text-gray-600">
-                      {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
-                    </p>
-                  </div>
                 </div>
               ))}
             </div>
           </section>
         </div>
 
-        {/* Right Column: Product Info & Purchase */}
+        {/* Right: Info */}
         <div className="lg:col-span-5">
-          <div className="sticky top-24 space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                {isWholesale && (
-                  <span className="bg-primary text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                    Wholesale
-                  </span>
-                )}
-                {!isWholesale && product.is_b2b_available && (
-                  <span className="bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                    Wholesale Available
-                  </span>
-                )}
-                <span className="text-xs text-gray-500 font-medium tracking-wide">SKU: {product.sku}</span>
-              </div>
-              <h1 className="text-4xl font-extrabold tracking-tight">{product.name}</h1>
-              <p className="text-gray-600 text-lg leading-relaxed">{product.tagline}</p>
-            </div>
+          <div className="sticky top-36 space-y-5">
+            {/* Category */}
+            <p className="text-xs uppercase tracking-[0.06em] text-accent font-medium">
+              {product.category}
+            </p>
 
-            {/* Pricing */}
+            {/* Name + Tagline */}
+            <h1 className="font-display text-2xl lg:text-3xl text-foreground">{product.name}</h1>
+            <p className="text-muted leading-relaxed">{product.tagline}</p>
+
+            {/* Price */}
             <div className="space-y-1">
               <div className="flex items-baseline gap-3">
-                <p className="text-3xl font-black text-primary">
+                <span className="text-xl font-bold tabular-nums text-foreground">
                   &#8377;{formatPrice(unitPrice)}
-                </p>
+                </span>
                 {(discount > 0 || isWholesale) && (
-                  <p className="text-lg text-gray-400 line-through font-medium">
-                    &#8377;{formatPrice(product.base_price)} MRP
-                  </p>
+                  <span className="text-sm text-faint line-through tabular-nums">
+                    &#8377;{formatPrice(product.base_price)}
+                  </span>
+                )}
+                {discount > 0 && !isWholesale && (
+                  <span className="px-2 py-0.5 bg-accent-soft text-discount text-xs font-semibold rounded">
+                    {discount}% OFF
+                  </span>
                 )}
               </div>
-              <p className="text-sm font-bold text-gray-900">
+              <p className="text-sm text-muted">
                 {isWholesale ? "Wholesale Unit Price" : "Retail Price"} + 18% GST
               </p>
               {isWholesale && (
-                <div className="flex items-center gap-2 mt-2 py-2 px-3 bg-amber-50 rounded-lg border border-amber-100">
-                  <span className="material-symbols-outlined text-amber-600 text-sm">info</span>
-                  <p className="text-xs text-amber-800 font-medium">Minimum Order Quantity (MOQ): 5 Units</p>
+                <div className="flex items-center gap-2 mt-1.5 py-2 px-3 bg-accent-soft rounded-lg">
+                  <span className="material-symbols-outlined text-primary text-sm">info</span>
+                  <p className="text-xs text-primary font-medium">
+                    Minimum Order Quantity (MOQ): 5 Units
+                  </p>
                 </div>
               )}
             </div>
 
+            {/* Divider */}
+            <div className="h-px bg-[var(--color-border)]" />
+
             {/* Color Selector */}
             {product.colors.length > 1 && (
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 block">
-                  Color: {selectedColor}
+                <label className="text-sm font-medium text-muted mb-2 block">
+                  Color: <span className="text-foreground">{selectedColor}</span>
                 </label>
                 <div className="flex gap-2 flex-wrap">
                   {product.colors.map((color) => (
@@ -151,8 +161,8 @@ export default function ProductDetailPage() {
                       onClick={() => setSelectedColor(color)}
                       className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${
                         selectedColor === color
-                          ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/20"
-                          : "border-gray-200 text-gray-700 hover:border-gray-300"
+                          ? "border-primary bg-accent-soft text-primary"
+                          : "border-[var(--color-border)] text-muted hover:border-strong"
                       }`}
                     >
                       {color}
@@ -162,127 +172,177 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Order Module */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 shadow-sm">
-              {isWholesale && (
-                <div>
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-4">Tiered Pricing</h4>
-                  <div className="overflow-hidden rounded-xl border border-gray-100">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr className="text-left">
-                          <th className="px-4 py-3 font-semibold text-gray-600">Quantity</th>
-                          <th className="px-4 py-3 font-semibold text-gray-600 text-right">Unit Price</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        <tr className="pricing-table-row bg-primary/5">
-                          <td className="px-4 py-3 font-medium">5 - 19 Units</td>
-                          <td className="px-4 py-3 text-right font-bold text-primary">&#8377;{formatPrice(Math.round(product.selling_price * 0.90))}</td>
-                        </tr>
-                        <tr className="pricing-table-row">
-                          <td className="px-4 py-3 font-medium">20 - 49 Units</td>
-                          <td className="px-4 py-3 text-right font-bold">&#8377;{formatPrice(Math.round(product.selling_price * 0.88))}</td>
-                        </tr>
-                        <tr className="pricing-table-row">
-                          <td className="px-4 py-3 font-medium">50 - 99 Units</td>
-                          <td className="px-4 py-3 text-right font-bold">&#8377;{formatPrice(wholesalePrice)}</td>
-                        </tr>
-                        <tr className="pricing-table-row">
-                          <td className="px-4 py-3 font-medium">100+ Units</td>
-                          <td className="px-4 py-3 text-right font-bold">&#8377;{formatPrice(Math.round(product.selling_price * 0.80))}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+            {/* Wholesale Pricing Tiers */}
+            {isWholesale && (
+              <div>
+                <h4 className="text-sm font-medium text-muted mb-3">Tiered Pricing</h4>
+                <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
+                  <table className="w-full text-sm">
+                    <thead className="bg-surface-muted border-b border-[var(--color-border)]">
+                      <tr>
+                        <th className="px-4 py-2.5 text-left font-medium text-muted">Quantity</th>
+                        <th className="px-4 py-2.5 text-right font-medium text-muted">Unit Price</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--color-border)]">
+                      <tr className="bg-accent-soft">
+                        <td className="px-4 py-2.5 font-medium text-foreground">5 – 19 Units</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-primary tabular-nums">
+                          &#8377;{formatPrice(Math.round(product.selling_price * 0.90))}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2.5 font-medium text-foreground">20 – 49 Units</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-foreground tabular-nums">
+                          &#8377;{formatPrice(Math.round(product.selling_price * 0.88))}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2.5 font-medium text-foreground">50 – 99 Units</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-foreground tabular-nums">
+                          &#8377;{formatPrice(wholesalePrice)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2.5 font-medium text-foreground">100+ Units</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-foreground tabular-nums">
+                          &#8377;{formatPrice(Math.round(product.selling_price * 0.80))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Quantity + Add to Cart */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-muted mb-1.5 block">Quantity</label>
+                  <div className="flex items-center h-12 border border-[var(--color-border)] rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setQuantity(Math.max(isWholesale ? 5 : 1, quantity - 1))}
+                      className="w-12 h-full flex items-center justify-center text-muted hover:bg-surface-muted transition text-lg"
+                    >
+                      &minus;
+                    </button>
+                    <input
+                      type="number"
+                      min={isWholesale ? 5 : 1}
+                      value={quantity}
+                      onChange={(e) =>
+                        setQuantity(Math.max(isWholesale ? 5 : 1, parseInt(e.target.value) || 1))
+                      }
+                      className="flex-1 h-full text-center font-bold text-foreground bg-transparent border-x border-[var(--color-border)] focus:outline-none tabular-nums"
+                    />
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-12 h-full flex items-center justify-center text-muted hover:bg-surface-muted transition text-lg"
+                    >
+                      +
+                    </button>
                   </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted mb-0.5">Subtotal</p>
+                  <p className="text-xl font-bold text-foreground tabular-nums">
+                    &#8377;{formatPrice(subtotal)}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleAddToCart}
+                className={`w-full h-12 rounded-lg font-medium text-sm tracking-[0.04em] uppercase flex items-center justify-center gap-2 transition ${
+                  added
+                    ? "bg-success text-white"
+                    : "bg-primary hover:bg-primary-light text-white"
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">
+                  {added ? "check_circle" : "add_shopping_cart"}
+                </span>
+                {added
+                  ? "Added to Cart!"
+                  : isWholesale
+                    ? `Add ${quantity} to Cart`
+                    : "Add to Cart"}
+              </button>
+
+              {isWholesale && (
+                <a
+                  href="tel:+919845007572"
+                  className="w-full h-12 border-[1.5px] border-strong text-foreground hover:bg-surface-muted rounded-lg font-medium text-sm tracking-[0.04em] uppercase flex items-center justify-center gap-2 transition"
+                >
+                  <span className="material-symbols-outlined text-lg">call</span>
+                  Call for Custom Quote
+                </a>
+              )}
+            </div>
+
+            {/* Trust Signals */}
+            <div className="flex flex-wrap gap-4 py-3 text-sm text-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-accent text-base">local_shipping</span>
+                Free Delivery
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-accent text-base">autorenew</span>
+                7-Day Returns
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-accent text-base">receipt_long</span>
+                GST Invoice
+              </span>
+            </div>
+
+            {/* Service Info */}
+            <div className="bg-surface-muted rounded-lg p-4 space-y-2.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted">Warranty</span>
+                <span className="font-medium text-foreground">
+                  {product.warranty_years} Year{product.warranty_years > 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">Delivery</span>
+                <span className="font-medium text-foreground">
+                  Free {isWholesale ? "2-3 days" : "48-hour"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">Assembly</span>
+                <span className="font-medium text-foreground">On-site included</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">SKU</span>
+                <span className="font-mono text-sm text-muted">{product.sku}</span>
+              </div>
+              {isWholesale && (
+                <div className="flex justify-between">
+                  <span className="text-muted">GST Invoice</span>
+                  <span className="font-medium text-foreground">Yes (ITC eligible)</span>
                 </div>
               )}
-
-              <div className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Order Quantity</label>
-                  <div className="flex items-center gap-4">
-                    <div className="relative flex-1">
-                      <input
-                        className="w-full border-gray-200 rounded-lg py-3 px-4 focus:ring-primary focus:border-primary font-bold text-lg"
-                        min={isWholesale ? 5 : 1}
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(isWholesale ? 5 : 1, parseInt(e.target.value) || 1))}
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">Units</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-bold text-gray-400">Subtotal</p>
-                      <p className="text-xl font-black">&#8377;{formatPrice(subtotal)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    className={`w-full font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${
-                      added
-                        ? "bg-green-600 text-white shadow-green-600/20"
-                        : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined">
-                      {added ? "check_circle" : "add_shopping_cart"}
-                    </span>
-                    {added ? "Added to Cart!" : isWholesale ? `Add ${quantity} to Cart` : "Add to Cart"}
-                  </button>
-                  {isWholesale && (
-                    <a
-                      href="tel:+919845007572"
-                      className="w-full border-2 border-primary text-primary hover:bg-primary/5 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
-                    >
-                      <span className="material-symbols-outlined">call</span>
-                      Call for Custom Quote
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-gray-100 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 font-medium">Warranty:</span>
-                  <span className="text-gray-900 font-bold">{product.warranty_years} Year{product.warranty_years > 1 ? "s" : ""}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 font-medium">Delivery:</span>
-                  <span className="text-gray-900 font-bold">Free {isWholesale ? "2-3 days" : "48-hour"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 font-medium">Assembly:</span>
-                  <span className="text-gray-900 font-bold">On-site included</span>
-                </div>
-                {isWholesale && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-medium">GST Invoice:</span>
-                    <span className="text-gray-900 font-bold">Yes (ITC eligible)</span>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Description */}
-      <section className="mt-24 py-16 border-t border-gray-200">
+      <section className="mt-16 md:mt-24 py-10 md:py-16 border-t border-[var(--color-border)]">
         <div className="max-w-3xl">
-          <h3 className="text-xl font-bold mb-4">About This Chair</h3>
-          <p className="text-gray-600 leading-relaxed">{product.description}</p>
+          <h3 className="font-display text-xl mb-4 text-foreground">About This Chair</h3>
+          <p className="text-muted leading-relaxed">{product.description}</p>
         </div>
       </section>
 
       {/* Related Products */}
       {related.length > 0 && (
-        <section className="py-16 border-t border-gray-200">
-          <h3 className="text-2xl font-bold mb-8">You May Also Like</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+        <section className="py-10 md:py-16 border-t border-[var(--color-border)]">
+          <h3 className="font-display text-2xl mb-8 text-foreground">You May Also Like</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {related.map((p) => (
               <ProductCard key={p.sku} product={p} />
             ))}

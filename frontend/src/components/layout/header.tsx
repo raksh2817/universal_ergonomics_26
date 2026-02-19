@@ -1,78 +1,154 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCart } from "@/hooks/use-cart";
 import { useMode } from "@/hooks/use-mode";
+
+const navLinks = [
+  { href: "/products?category=Executive+Chairs", label: "Executive" },
+  { href: "/products?category=Mesh+Chairs", label: "Mesh" },
+  { href: "/products?category=Revolving+Chairs", label: "Revolving" },
+  { href: "/products?category=Visitor+Chairs", label: "Visitor" },
+  { href: "/products", label: "All Chairs" },
+  { href: "/about", label: "About" },
+];
+
+const mobileLinks = [
+  { href: "/products?category=Executive+Chairs", label: "Executive Chairs" },
+  { href: "/products?category=Mesh+Chairs", label: "Mesh Chairs" },
+  { href: "/products?category=Revolving+Chairs", label: "Revolving Chairs" },
+  { href: "/products?category=Visitor+Chairs", label: "Visitor Chairs" },
+  { href: "/products?category=Bar+Stools+%26+Classroom", label: "Bar Stools & Classroom" },
+  { href: "/products", label: "All Chairs" },
+  { href: "/about", label: "About Us" },
+];
 
 export function Header() {
   const totalItems = useCart((s) => s.totalItems);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const mode = useMode((s) => s.mode);
   const setMode = useMode((s) => s.setMode);
 
-  const isWholesale = mode === "wholesale";
+  useEffect(() => {
+    document.documentElement.dataset.mode = mode;
+  }, [mode]);
 
-  const navLinkClass = `text-sm font-semibold transition-colors ${isWholesale ? "text-white/60 hover:text-primary" : "text-[#111318]/70 hover:text-primary"}`;
+  useEffect(() => {
+    const stored = localStorage.getItem("ue-banner-dismissed");
+    if (stored === "true") setDismissed(true);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 100);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  const dismissBanner = useCallback(() => {
+    setDismissed(true);
+    localStorage.setItem("ue-banner-dismissed", "true");
+  }, []);
+
+  const itemCount = totalItems();
 
   return (
     <>
-      {/* ── Row 1: Caption Bar ── */}
-      <div className={`w-full border-b py-3.5 px-4 transition-colors ${isWholesale ? "bg-[#0a1628] border-[#1a2d4d]" : "bg-[#fbfbfd] border-[#f0f2f4]"}`}>
-        <p className={`text-center text-sm font-bold tracking-wide ${isWholesale ? "text-white/90" : "text-[#111318]"}`}>
-          {isWholesale
-            ? "Universal Furniture Systems — Wholesale Pricing on 81+ Chair Models"
-            : "Universal Furniture Systems — Factory-Direct Office Chairs from Bangalore"}
-        </p>
-      </div>
+      {/* Row 1: Announcement Bar */}
+      {!dismissed && (
+        <div className="relative w-full h-9 bg-dark overflow-hidden flex items-center justify-center">
+          <p className="text-accent text-xs font-medium tracking-[0.05em] uppercase text-center px-8">
+            {mode === "wholesale"
+              ? "Wholesale Portal — Bulk Pricing from 5 Chairs. Up to 20% Off."
+              : "Factory-Direct Prices. Free Delivery & Assembly in Bengaluru."}
+          </p>
+          <button
+            onClick={dismissBanner}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-accent/60 hover:text-accent transition"
+            aria-label="Dismiss announcement"
+          >
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      )}
 
-      {/* ── Row 2: Logo + Nav + Icons ── */}
-      <header className={`sticky top-0 z-50 w-full backdrop-blur-md transition-colors ${isWholesale ? "bg-[#0f1d33]/95" : "bg-white/95"}`}>
-        <div className={`border-b transition-colors ${isWholesale ? "border-[#1a2d4d]" : "border-[#f0f2f4]"}`}>
-          <div className="max-w-[1200px] mx-auto px-6 h-[72px] flex items-center justify-between">
-            {/* Logo & Brand */}
-            <Link href="/" className="flex items-center gap-4 group cursor-pointer flex-shrink-0">
-              <img
-                src="/logo.png"
-                alt="Universal Chairs"
-                className="h-14 w-14 object-contain"
-              />
-              <span className={`text-xl font-extrabold tracking-tight whitespace-nowrap ${isWholesale ? "text-white" : "text-[#111318]"}`}>
-                Universal{" "}<span className="text-primary">Ergonomics</span>
+      {/* Row 2 + 3: Sticky Header */}
+      <header
+        className={`sticky top-0 z-50 w-full transition-shadow duration-300 ${
+          scrolled
+            ? "shadow-[0_1px_0_var(--color-border)] backdrop-blur-xl bg-surface-raised/95"
+            : "bg-surface-raised"
+        }`}
+      >
+        {/* Main Nav Row */}
+        <div className="border-b border-[var(--color-border)]">
+          <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-10 h-16 lg:h-[72px] flex items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0">
+              <span className="font-display text-xl lg:text-2xl tracking-tight text-foreground whitespace-nowrap">
+                Universal <span className="text-accent">Ergonomics</span>
               </span>
             </Link>
 
-            {/* Desktop Nav links */}
+            {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-8">
-              <Link href="/products?category=Executive+Chairs" className={navLinkClass}>Executive</Link>
-              <Link href="/products?category=Mesh+Chairs" className={navLinkClass}>Mesh</Link>
-              <Link href="/products?category=Revolving+Chairs" className={navLinkClass}>Revolving</Link>
-              <Link href="/products?category=Visitor+Chairs" className={navLinkClass}>Visitor</Link>
-              <Link href="/products" className={navLinkClass}>All Chairs</Link>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="relative text-sm font-medium tracking-[0.03em] uppercase text-muted hover:text-foreground transition group"
+                >
+                  {link.label}
+                  <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-accent scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                </Link>
+              ))}
             </nav>
 
-            {/* Icons */}
-            <div className="flex items-center gap-3">
-              <button className={`p-2 rounded-full transition-colors ${isWholesale ? "hover:bg-white/10" : "hover:bg-[#f5f5f7]"}`}>
-                <span className={`material-symbols-outlined text-[22px] ${isWholesale ? "text-white/70" : ""}`}>search</span>
+            {/* Right Icons */}
+            <div className="flex items-center gap-2">
+              <button
+                className="p-2 rounded-full hover:bg-surface-muted transition"
+                aria-label="Search"
+              >
+                <span className="material-symbols-outlined text-[22px] text-muted">search</span>
               </button>
-              <Link href="/cart" className={`p-2 rounded-full transition-colors relative ${isWholesale ? "hover:bg-white/10" : "hover:bg-[#f5f5f7]"}`}>
-                <span className={`material-symbols-outlined text-[22px] ${isWholesale ? "text-white/70" : ""}`}>shopping_bag</span>
-                {totalItems() > 0 && (
-                  <span className="absolute top-1 right-1 size-2.5 bg-primary rounded-full" />
+
+              <Link
+                href="/cart"
+                className="p-2 rounded-full hover:bg-surface-muted transition relative"
+                aria-label={`Cart with ${itemCount} items`}
+              >
+                <span className="material-symbols-outlined text-[22px] text-muted">shopping_bag</span>
+                {itemCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 tabular-nums">
+                    {itemCount}
+                  </span>
                 )}
               </Link>
-              <div className={`size-9 rounded-full overflow-hidden border flex items-center justify-center ${isWholesale ? "border-white/20 bg-white/10 text-white/70" : "border-[#f0f2f4] bg-primary/10 text-primary"}`}>
+
+              <div className="hidden lg:flex size-9 rounded-full border border-[var(--color-border)] bg-surface-muted items-center justify-center text-muted">
                 <span className="material-symbols-outlined text-base">person</span>
               </div>
 
-              {/* Mobile hamburger */}
+              {/* Mobile Hamburger */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className={`lg:hidden p-2 rounded-full transition ${isWholesale ? "hover:bg-white/10" : "hover:bg-[#f5f5f7]"}`}
+                className="lg:hidden p-2 rounded-full hover:bg-surface-muted transition"
                 aria-label="Toggle menu"
+                aria-expanded={mobileOpen}
               >
-                <span className={`material-symbols-outlined text-[22px] ${isWholesale ? "text-white/70" : ""}`}>
+                <span className="material-symbols-outlined text-[22px] text-foreground">
                   {mobileOpen ? "close" : "menu"}
                 </span>
               </button>
@@ -80,26 +156,28 @@ export function Header() {
           </div>
         </div>
 
-        {/* ── Row 3: Retail / Wholesale Toggle ── */}
-        <div className={`border-b transition-colors ${isWholesale ? "border-[#1a2d4d]" : "border-[#f0f2f4]"}`}>
-          <div className="max-w-[1200px] mx-auto px-6 py-2.5 flex justify-center">
-            <div className={`flex p-1 rounded-full border w-56 transition-colors ${isWholesale ? "bg-white/10 border-white/20" : "bg-[#f5f5f7] border-[#e5e7eb]"}`}>
+        {/* Mode Toggle Row */}
+        <div className="border-b border-[var(--color-border)]">
+          <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-10 py-2 flex justify-center">
+            <div className="flex p-1 rounded-full bg-surface-muted w-52 relative">
+              <div
+                className="absolute top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] bg-primary rounded-full transition-transform duration-300 ease-out"
+                style={{
+                  transform: mode === "wholesale" ? "translateX(calc(100% + 4px))" : "translateX(0)",
+                }}
+              />
               <button
                 onClick={() => setMode("retail")}
-                className={`flex-1 py-1.5 px-5 rounded-full text-sm font-semibold transition-all ${
-                  !isWholesale
-                    ? "bg-white shadow-sm text-[#111318]"
-                    : "text-white/50 hover:text-white/80"
+                className={`relative z-10 flex-1 py-1.5 rounded-full text-xs font-semibold tracking-[0.05em] uppercase transition-colors ${
+                  mode === "retail" ? "text-white" : "text-muted"
                 }`}
               >
                 Retail
               </button>
               <button
                 onClick={() => setMode("wholesale")}
-                className={`flex-1 py-1.5 px-5 rounded-full text-sm font-semibold transition-all ${
-                  isWholesale
-                    ? "bg-primary shadow-sm text-white"
-                    : "text-[#6e6e73] hover:text-[#111318]"
+                className={`relative z-10 flex-1 py-1.5 rounded-full text-xs font-semibold tracking-[0.05em] uppercase transition-colors ${
+                  mode === "wholesale" ? "text-white" : "text-muted"
                 }`}
               >
                 Wholesale
@@ -107,33 +185,74 @@ export function Header() {
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Mobile menu */}
-        {mobileOpen && (
-          <nav className={`lg:hidden pb-4 border-b pt-3 px-6 ${isWholesale ? "border-[#1a2d4d]" : "border-[#f0f2f4]"}`}>
-            <div className="flex flex-col gap-1">
-              {[
-                { href: "/products?category=Executive+Chairs", label: "Executive Chairs" },
-                { href: "/products?category=Mesh+Chairs", label: "Mesh Chairs" },
-                { href: "/products?category=Revolving+Chairs", label: "Revolving Chairs" },
-                { href: "/products?category=Visitor+Chairs", label: "Visitor Chairs" },
-                { href: "/products?category=Bar+Stools+%26+Classroom", label: "Bar Stools & Classroom" },
-                { href: "/products", label: "All Chairs" },
-                { href: "/about", label: "About Us" },
-              ].map((link) => (
+      {/* Mobile Menu Overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileOpen(false)}
+            style={{ animation: "fadeIn 0.2s ease-out" }}
+          />
+          <nav
+            className="absolute top-0 right-0 h-full w-[min(85vw,360px)] bg-surface-raised flex flex-col overflow-y-auto"
+            style={{ animation: "slideInRight 0.3s ease-out" }}
+            aria-label="Mobile navigation"
+          >
+            <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)]">
+              <span className="font-display text-lg text-foreground">Menu</span>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-2 rounded-full hover:bg-surface-muted"
+                aria-label="Close menu"
+              >
+                <span className="material-symbols-outlined text-foreground">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 p-5 space-y-1">
+              {mobileLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`px-3 py-2.5 text-sm font-medium rounded-lg transition ${isWholesale ? "text-white/70 hover:bg-white/10" : "text-[#111318]/70 hover:bg-[#f5f5f7]"}`}
+                  className="flex items-center px-4 py-3 text-xl font-medium text-foreground hover:bg-surface-muted rounded-lg transition min-h-[48px]"
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
+
+            <div className="p-5 border-t border-[var(--color-border)]">
+              <div className="flex p-1 rounded-full bg-surface-muted relative">
+                <div
+                  className="absolute top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] bg-primary rounded-full transition-transform duration-300 ease-out"
+                  style={{
+                    transform: mode === "wholesale" ? "translateX(calc(100% + 4px))" : "translateX(0)",
+                  }}
+                />
+                <button
+                  onClick={() => setMode("retail")}
+                  className={`relative z-10 flex-1 py-2 rounded-full text-sm font-semibold tracking-[0.05em] uppercase transition-colors ${
+                    mode === "retail" ? "text-white" : "text-muted"
+                  }`}
+                >
+                  Retail
+                </button>
+                <button
+                  onClick={() => setMode("wholesale")}
+                  className={`relative z-10 flex-1 py-2 rounded-full text-sm font-semibold tracking-[0.05em] uppercase transition-colors ${
+                    mode === "wholesale" ? "text-white" : "text-muted"
+                  }`}
+                >
+                  Wholesale
+                </button>
+              </div>
+            </div>
           </nav>
-        )}
-      </header>
+        </div>
+      )}
     </>
   );
 }

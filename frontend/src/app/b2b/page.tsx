@@ -15,7 +15,7 @@ export default function B2BRedirect() {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <p className="text-[#6e6e73]">Switching to Wholesale mode...</p>
+      <p className="text-muted">Switching to Wholesale mode...</p>
     </div>
   );
 }

@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Headless commerce API for Universal Ergonomics — office chairs manufactured in Bangalore",
+    description="Headless commerce API for Universal Ergonomics — office chairs manufactured in Bengaluru",
     lifespan=lifespan,
 )
 

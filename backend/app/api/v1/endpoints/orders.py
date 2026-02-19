@@ -53,7 +53,7 @@ async def create_order(payload: OrderCreate, db: AsyncSession = Depends(get_db))
         ))
 
     gst_amount = subtotal * Decimal("0.18")
-    delivery_charge = Decimal("0.00")  # Free delivery in Bangalore
+    delivery_charge = Decimal("0.00")  # Free delivery in Bengaluru
     total = subtotal + gst_amount + delivery_charge
 
     order_number = f"UE-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid_mod.uuid4().hex[:6].upper()}"
