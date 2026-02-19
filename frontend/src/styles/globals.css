@@ -10,15 +10,17 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 
-/* Smooth scroll for anchor links */
 html {
   scroll-behavior: smooth;
 }
 
-/* Price formatting */
-.price-inr::before {
-  content: "₹";
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
