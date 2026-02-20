@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import require_admin
 from app.models.inventory import InventoryRecord, InventoryLog
 from app.models.product import Product
 from app.schemas.inventory import InventoryOut, InventoryUpdate
@@ -17,6 +18,7 @@ router = APIRouter()
 @router.get("/", response_model=list[InventoryOut])
 async def list_inventory(
     low_stock_only: bool = False,
+    _admin=Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(InventoryRecord)
@@ -29,7 +31,11 @@ async def list_inventory(
 
 
 @router.get("/{product_id}", response_model=InventoryOut)
-async def get_inventory(product_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_inventory(
+    product_id: UUID,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(InventoryRecord).where(InventoryRecord.product_id == product_id)
     )
@@ -40,7 +46,11 @@ async def get_inventory(product_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/update", response_model=InventoryOut)
-async def update_inventory(payload: InventoryUpdate, db: AsyncSession = Depends(get_db)):
+async def update_inventory(
+    payload: InventoryUpdate,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
     """
     Primary endpoint for the Telegram/WhatsApp bot and admin panel
     to update stock levels.

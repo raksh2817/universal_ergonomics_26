@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import String, Numeric, DateTime, Integer, Text, JSON
+from sqlalchemy import ForeignKey, String, Numeric, DateTime, Integer, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -45,7 +45,7 @@ class LeadActivity(Base):
     __tablename__ = "lead_activities"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    lead_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    lead_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), index=True)
     activity_type: Mapped[str] = mapped_column(String(50))  # email_opened, page_view, quote_requested, call
     description: Mapped[str] = mapped_column(Text, nullable=True)
     score_delta: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("0.00"))

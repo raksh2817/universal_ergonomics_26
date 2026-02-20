@@ -5,17 +5,17 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class OrderItemCreate(BaseModel):
     product_id: UUID
     variant_id: Optional[UUID] = None
-    quantity: int
+    quantity: int = Field(..., ge=1, le=10000)
 
 
 class OrderCreate(BaseModel):
-    items: list[OrderItemCreate]
+    items: list[OrderItemCreate] = Field(..., min_length=1)
     shipping_address_id: UUID
     customer_notes: Optional[str] = None
     order_type: str = "b2c"

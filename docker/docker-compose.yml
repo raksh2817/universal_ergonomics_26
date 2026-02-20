@@ -1,12 +1,10 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: universal_ergonomics
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
@@ -24,10 +22,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/universal_ergonomics
-      DATABASE_URL_SYNC: postgresql://postgres:postgres@db:5432/universal_ergonomics
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/universal_ergonomics
+      DATABASE_URL_SYNC: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/universal_ergonomics
       REDIS_URL: redis://redis:6379/0
-      DEBUG: "true"
+      DEBUG: "${DEBUG:-true}"
+      SECRET_KEY: "${SECRET_KEY:-change-me-in-production}"
     depends_on:
       - db
       - redis
@@ -55,8 +54,8 @@ services:
       dockerfile: ../docker/Dockerfile.backend
     command: celery -A app.celery_app worker --loglevel=info
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/universal_ergonomics
-      DATABASE_URL_SYNC: postgresql://postgres:postgres@db:5432/universal_ergonomics
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/universal_ergonomics
+      DATABASE_URL_SYNC: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/universal_ergonomics
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - db
@@ -68,8 +67,8 @@ services:
       dockerfile: ../docker/Dockerfile.backend
     command: celery -A app.celery_app beat --loglevel=info
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/universal_ergonomics
-      DATABASE_URL_SYNC: postgresql://postgres:postgres@db:5432/universal_ergonomics
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/universal_ergonomics
+      DATABASE_URL_SYNC: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/universal_ergonomics
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - db

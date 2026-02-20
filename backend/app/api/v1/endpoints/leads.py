@@ -4,13 +4,26 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import require_admin
 from app.models.lead import Lead, LeadActivity
 
 router = APIRouter()
+
+
+class LeadCreate(BaseModel):
+    company_name: str
+    contact_name: str
+    email: EmailStr
+    source: str = "website"
+    phone: Optional[str] = None
+    industry: Optional[str] = None
+    employee_count: Optional[int] = None
+    estimated_quantity: Optional[int] = None
 
 
 @router.get("/")
@@ -20,6 +33,7 @@ async def list_leads(
     sort_by: str = Query("score", pattern="^(score|created_at|company_name)$"),
     skip: int = 0,
     limit: int = Query(20, le=100),
+    _admin=Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Lead)
@@ -35,41 +49,34 @@ async def list_leads(
     leads = result.scalars().all()
     return [
         {
-            "id": str(l.id),
-            "company_name": l.company_name,
-            "contact_name": l.contact_name,
-            "email": l.email,
-            "source": l.source,
-            "score": float(l.score),
-            "stage": l.stage,
-            "estimated_quantity": l.estimated_quantity,
-            "created_at": l.created_at.isoformat(),
+            "id": str(lead.id),
+            "company_name": lead.company_name,
+            "contact_name": lead.contact_name,
+            "email": lead.email,
+            "source": lead.source,
+            "score": float(lead.score),
+            "stage": lead.stage,
+            "estimated_quantity": lead.estimated_quantity,
+            "created_at": lead.created_at.isoformat(),
         }
-        for l in leads
+        for lead in leads
     ]
 
 
 @router.post("/", status_code=201)
 async def create_lead(
-    company_name: str,
-    contact_name: str,
-    email: str,
-    source: str = "website",
-    phone: Optional[str] = None,
-    industry: Optional[str] = None,
-    employee_count: Optional[int] = None,
-    estimated_quantity: Optional[int] = None,
+    payload: LeadCreate,
     db: AsyncSession = Depends(get_db),
 ):
     lead = Lead(
-        company_name=company_name,
-        contact_name=contact_name,
-        email=email,
-        phone=phone,
-        source=source,
-        industry=industry,
-        employee_count=employee_count,
-        estimated_quantity=estimated_quantity,
+        company_name=payload.company_name,
+        contact_name=payload.contact_name,
+        email=payload.email,
+        phone=payload.phone,
+        source=payload.source,
+        industry=payload.industry,
+        employee_count=payload.employee_count,
+        estimated_quantity=payload.estimated_quantity,
     )
     # Auto-score on creation
     from app.services.leads.scorer import LeadScorer
@@ -83,7 +90,11 @@ async def create_lead(
 
 
 @router.get("/{lead_id}/activities")
-async def get_lead_activities(lead_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_lead_activities(
+    lead_id: UUID,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(LeadActivity)
         .where(LeadActivity.lead_id == lead_id)

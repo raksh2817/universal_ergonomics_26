@@ -1,7 +1,11 @@
 """Application configuration via environment variables."""
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from typing import Optional
+
+
+_INSECURE_DEFAULTS = frozenset({"change-me-in-production", "secret", "changeme", ""})
 
 
 class Settings(BaseSettings):
@@ -11,6 +15,19 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = "change-me-in-production"
     API_V1_PREFIX: str = "/api/v1"
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def secret_key_must_be_set(cls, v: str) -> str:
+        if v in _INSECURE_DEFAULTS:
+            import warnings
+            warnings.warn(
+                "SECRET_KEY is set to an insecure default. "
+                "Set a strong, unique value in production via the SECRET_KEY env var. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(64))\"",
+                stacklevel=2,
+            )
+        return v
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/universal_ergonomics"

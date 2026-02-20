@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.security import get_current_user, require_admin
 from app.models.order import Order, OrderItem, OrderStatus, OrderType, Address
 from app.models.product import Product
 from app.schemas.order import OrderCreate, OrderOut
@@ -20,10 +21,17 @@ router = APIRouter()
 
 
 @router.post("/", response_model=OrderOut, status_code=201)
-async def create_order(payload: OrderCreate, db: AsyncSession = Depends(get_db)):
-    # Resolve address
+async def create_order(
+    payload: OrderCreate,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Resolve address — verify it belongs to the current user
     addr_result = await db.execute(
-        select(Address).where(Address.id == payload.shipping_address_id)
+        select(Address).where(
+            Address.id == payload.shipping_address_id,
+            Address.user_id == current_user.id,
+        )
     )
     address = addr_result.scalar_one_or_none()
     if not address:
@@ -60,7 +68,7 @@ async def create_order(payload: OrderCreate, db: AsyncSession = Depends(get_db))
 
     order = Order(
         order_number=order_number,
-        user_id=address.user_id,
+        user_id=current_user.id,
         order_type=OrderType(payload.order_type),
         shipping_address_text=f"{address.line1}, {address.line2 or ''}, {address.city} - {address.pincode}",
         shipping_pincode=address.pincode,
@@ -80,19 +88,31 @@ async def create_order(payload: OrderCreate, db: AsyncSession = Depends(get_db))
 
 
 @router.get("/{order_id}", response_model=OrderOut)
-async def get_order(order_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_order(
+    order_id: UUID,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(Order).where(Order.id == order_id).options(selectinload(Order.items))
     )
     order = result.scalar_one_or_none()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    # IDOR protection: users can only view their own orders; admins can view all
+    if order.user_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=404, detail="Order not found")
+
     return order
 
 
 @router.patch("/{order_id}/status")
 async def update_order_status(
-    order_id: UUID, new_status: str, db: AsyncSession = Depends(get_db)
+    order_id: UUID,
+    new_status: str,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()

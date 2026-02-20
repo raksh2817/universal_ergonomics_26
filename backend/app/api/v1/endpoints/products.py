@@ -9,12 +9,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
+from app.core.security import require_admin
 from app.models.product import Product, ProductVariant, ProductImage
 from app.schemas.product import (
     ProductCreate, ProductDetailOut, ProductListOut, ProductUpdate,
 )
 
 router = APIRouter()
+
+
+def _escape_like(value: str) -> str:
+    """Escape special characters in LIKE/ILIKE patterns."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 @router.get("/", response_model=list[ProductListOut])
@@ -42,7 +48,8 @@ async def list_products(
     if max_price is not None:
         query = query.where(Product.selling_price <= max_price)
     if search:
-        query = query.where(Product.name.ilike(f"%{search}%"))
+        safe_search = _escape_like(search)
+        query = query.where(Product.name.ilike(f"%{safe_search}%"))
 
     order_col = getattr(Product, sort_by)
     query = query.order_by(order_col.desc() if sort_order == "desc" else order_col.asc())
@@ -71,7 +78,11 @@ async def get_product(slug: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/", response_model=ProductDetailOut, status_code=201)
-async def create_product(payload: ProductCreate, db: AsyncSession = Depends(get_db)):
+async def create_product(
+    payload: ProductCreate,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
     product = Product(**payload.model_dump())
     db.add(product)
     await db.flush()
@@ -81,7 +92,10 @@ async def create_product(payload: ProductCreate, db: AsyncSession = Depends(get_
 
 @router.patch("/{product_id}", response_model=ProductDetailOut)
 async def update_product(
-    product_id: UUID, payload: ProductUpdate, db: AsyncSession = Depends(get_db)
+    product_id: UUID,
+    payload: ProductUpdate,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()

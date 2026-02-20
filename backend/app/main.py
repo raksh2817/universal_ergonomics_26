@@ -29,7 +29,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow Next.js frontend
+# CORS — allow Next.js frontend with restricted methods and headers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -38,8 +38,8 @@ app.add_middleware(
         "https://www.universalergonomics.in",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 # API routes

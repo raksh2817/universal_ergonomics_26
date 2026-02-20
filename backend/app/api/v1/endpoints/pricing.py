@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import require_admin
 from app.models.pricing import CompetitorPrice, PricingRule
 
 router = APIRouter()
@@ -18,6 +19,7 @@ async def get_competitor_prices(
     product_id: UUID,
     competitor: Optional[str] = None,
     limit: int = Query(20, le=100),
+    _admin=Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     query = (
@@ -45,7 +47,10 @@ async def get_competitor_prices(
 
 
 @router.get("/rules")
-async def list_pricing_rules(db: AsyncSession = Depends(get_db)):
+async def list_pricing_rules(
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(
         select(PricingRule).where(PricingRule.is_active == True).order_by(PricingRule.priority.desc())  # noqa: E712
     )
@@ -63,12 +68,18 @@ async def list_pricing_rules(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/recommendation/{product_id}")
-async def get_price_recommendation(product_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_price_recommendation(
+    product_id: UUID,
+    _admin=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
     """
     Returns a recommended selling price based on competitor data and pricing rules.
-    This is a placeholder — the actual logic lives in services/pricing/.
+    Admin-only: exposes internal pricing strategy.
     """
     from app.services.pricing.engine import PricingEngine
     engine = PricingEngine(db)
     recommendation = await engine.recommend_price(product_id)
+    # Strip cost_price from the response — sensitive business data
+    recommendation.pop("cost_price", None)
     return recommendation
