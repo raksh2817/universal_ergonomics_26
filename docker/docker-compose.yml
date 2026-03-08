@@ -21,6 +21,7 @@ services:
     build:
       context: ../backend
       dockerfile: ../docker/Dockerfile.backend
+    image: universal-ergonomics-backend
     ports:
       - "8000:8000"
     environment:
@@ -50,28 +51,26 @@ services:
       - /app/.next
 
   celery-worker:
-    build:
-      context: ../backend
-      dockerfile: ../docker/Dockerfile.backend
+    image: universal-ergonomics-backend
     command: celery -A app.celery_app worker --loglevel=info
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/universal_ergonomics
       DATABASE_URL_SYNC: postgresql://postgres:postgres@db:5432/universal_ergonomics
       REDIS_URL: redis://redis:6379/0
     depends_on:
+      - backend
       - db
       - redis
 
   celery-beat:
-    build:
-      context: ../backend
-      dockerfile: ../docker/Dockerfile.backend
+    image: universal-ergonomics-backend
     command: celery -A app.celery_app beat --loglevel=info
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/universal_ergonomics
       DATABASE_URL_SYNC: postgresql://postgres:postgres@db:5432/universal_ergonomics
       REDIS_URL: redis://redis:6379/0
     depends_on:
+      - backend
       - db
       - redis
 
