@@ -1,15 +1,35 @@
 /**
  * PRODUCT DATA STORE
  *
- * This is the single source of truth for all products.
+ * This is the single source of truth for all products on the frontend.
+ * The Next.js storefront is currently standalone (no backend API calls) and
+ * uses this static data file instead of fetching from the FastAPI backend.
+ * When the backend is integrated, this file would be replaced by API calls.
+ *
+ * SKU naming convention:
+ *   UE-{CATEGORY_CODE}-{SEQUENCE}
+ *   e.g. UE-EXEC-001, UE-MID-002, UE-GAME-001
  *
  * TO ADD A NEW PRODUCT:
- *   1. Add an entry to the `products` array below
+ *   1. Add an entry to the `products` array below following the Product type
  *   2. Drop an image at /public/products/[slug].jpg
- *   3. That's it — the product appears on the site automatically
+ *   3. The product automatically appears in listings, search, and filters
  *
  * TO ADD A NEW CATEGORY:
  *   Just use a new category string in a product — it auto-appears in filters
+ *   via the dynamic `getCategories()` helper.
+ *
+ * Helper functions exported from this module:
+ *   getAllProducts()          – Full product list
+ *   getProductBySlug()        – Single product lookup for detail pages
+ *   getProductsBySlugs()      – Multiple products by slug array (for curation)
+ *   getCategories()           – Deduplicated category list for filter UI
+ *   getProductsByCategory()   – Filter by category string
+ *   searchProducts()          – Name / tagline / category / SKU keyword search
+ *   getFeaturedProducts()     – Curated homepage selection
+ *   getPriceRange()           – Min/max for price-range filter slider
+ *   formatPrice()             – Indian locale number formatting (e.g. "15,999")
+ *   getDiscount()             – Percentage discount vs MRP (base_price)
  */
 
 import type { Product } from "@/types/product";
@@ -388,28 +408,47 @@ export const products: Product[] = [
   },
 ];
 
-// --- Helper functions ---
+// =============================================================================
+// Helper functions
+// =============================================================================
 
+/** Return all products (used for full listing and price-range calculation). */
 export function getAllProducts(): Product[] {
   return products;
 }
 
+/** Look up a single product by URL slug for the [slug] detail page. */
 export function getProductBySlug(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
 
+/**
+ * Fetch multiple products by an ordered array of slugs.
+ * Used to build curated collections (e.g. homepage featured section).
+ * Products not found are silently dropped via `.filter(Boolean)`.
+ */
 export function getProductsBySlugs(slugs: string[]): Product[] {
   return slugs.map((s) => products.find((p) => p.slug === s)).filter(Boolean) as Product[];
 }
 
+/**
+ * Derive the unique category list from the products array.
+ * `new Set` deduplicates, spread converts back to a plain array.
+ * Categories appear in the order of first occurrence in `products`.
+ */
 export function getCategories(): string[] {
   return [...new Set(products.map((p) => p.category))];
 }
 
+/** Filter products to a single category (used by the category filter UI). */
 export function getProductsByCategory(category: string): Product[] {
   return products.filter((p) => p.category === category);
 }
 
+/**
+ * Keyword search across name, tagline, category, and SKU fields.
+ * Case-insensitive — query is lowercased before comparison.
+ */
 export function searchProducts(query: string): Product[] {
   const q = query.toLowerCase();
   return products.filter(
@@ -421,6 +460,11 @@ export function searchProducts(query: string): Product[] {
   );
 }
 
+/**
+ * Return the curated homepage featured products.
+ * One product from each major category to showcase breadth of range.
+ * Ordering of slugs determines display order in the grid.
+ */
 export function getFeaturedProducts(): Product[] {
   // Return a curated mix for homepage — top sellers from different categories
   return getProductsBySlugs([
@@ -433,15 +477,29 @@ export function getFeaturedProducts(): Product[] {
   ]);
 }
 
+/**
+ * Compute the min and max selling prices across all products.
+ * Used to set the initial bounds of the price-range filter slider.
+ */
 export function getPriceRange(): { min: number; max: number } {
   const prices = products.map((p) => p.selling_price);
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
+/**
+ * Format a price in Indian locale (en-IN) number format.
+ * e.g. 15999 → "15,999"  |  100000 → "1,00,000"
+ * The ₹ symbol is added by the caller to allow flexible placement.
+ */
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat("en-IN").format(price);
 }
 
+/**
+ * Calculate the discount percentage relative to base_price (MRP).
+ * Used to display the "X% off" badge on product cards and detail pages.
+ * Result is rounded to the nearest whole number.
+ */
 export function getDiscount(product: Product): number {
   return Math.round(
     ((product.base_price - product.selling_price) / product.base_price) * 100
