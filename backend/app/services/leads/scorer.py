@@ -48,22 +48,45 @@ ACTIVITY_SCORES = {
 
 
 class LeadScorer:
-    """Calculates and updates lead scores."""
+    """
+    Stateless lead scoring utility.
+
+    Called by the leads API endpoint at lead-creation time to compute
+    an initial score, and by the activity endpoint to add score deltas
+    as the sales team logs interactions.
+    """
 
     def initial_score(self, lead: Lead) -> Decimal:
-        """Calculate the initial score when a lead is created."""
+        """
+        Calculate the initial score when a lead is first created.
+
+        Scoring is additive across four dimensions:
+          1. Industry fit     (0–20 points)
+          2. Employee count   (5–25 points) — proxy for potential order size
+          3. Quantity intent  (10–30 points) — explicit chair count request
+          4. Lead source      (3–15 points) — referrals are highest quality
+
+        Max theoretical score: 20 + 25 + 30 + 15 = 90
+        """
         score = Decimal("0")
 
-        # Industry fit
+        # ------------------------------------------------------------------
+        # 1. Industry fit — substring match against INDUSTRY_WEIGHTS keys
+        #    Uses for/else: the `else` block fires only if no key matched,
+        #    applying the "other" fallback weight.
+        # ------------------------------------------------------------------
         industry = (lead.industry or "other").lower()
         for key, weight in INDUSTRY_WEIGHTS.items():
             if key in industry:
                 score += Decimal(str(weight))
                 break
         else:
+            # No industry keyword matched — apply the "other" default weight
             score += Decimal(str(INDUSTRY_WEIGHTS["other"]))
 
-        # Employee count (more employees = larger potential order)
+        # ------------------------------------------------------------------
+        # 2. Employee count — more employees → larger expected order volume
+        # ------------------------------------------------------------------
         if lead.employee_count:
             if lead.employee_count >= 500:
                 score += Decimal("25")
@@ -76,7 +99,9 @@ class LeadScorer:
             else:
                 score += Decimal("5")
 
-        # Estimated quantity
+        # ------------------------------------------------------------------
+        # 3. Estimated quantity — directly stated chair requirement
+        # ------------------------------------------------------------------
         if lead.estimated_quantity:
             if lead.estimated_quantity >= 100:
                 score += Decimal("30")
@@ -89,23 +114,39 @@ class LeadScorer:
             elif lead.estimated_quantity >= 5:
                 score += Decimal("10")
 
-        # Source quality
+        # ------------------------------------------------------------------
+        # 4. Lead source — referrals convert at the highest rate
+        # ------------------------------------------------------------------
         source_scores = {
-            "referral": Decimal("15"),
-            "website": Decimal("10"),
-            "event": Decimal("8"),
-            "cold_outreach": Decimal("3"),
+            "referral": Decimal("15"),       # Referred by existing customer
+            "website": Decimal("10"),        # Submitted B2B form on-site
+            "event": Decimal("8"),           # Met at trade show / event
+            "cold_outreach": Decimal("3"),   # Outbound SDR contact
         }
+        # Default of 5 for unrecognised sources
         score += source_scores.get(lead.source, Decimal("5"))
 
         return score
 
     def activity_score(self, activity_type: str) -> Decimal:
-        """Return the score delta for a given activity type."""
+        """
+        Return the score delta for a single engagement activity.
+
+        Called whenever a new LeadActivity row is created so the lead's
+        cumulative score can be incremented.  Falls back to 1.0 for any
+        unrecognised activity type.
+        """
         return ACTIVITY_SCORES.get(activity_type, Decimal("1.0"))
 
     def classify_stage(self, score: Decimal) -> str:
-        """Suggest a lead stage based on score."""
+        """
+        Map a numeric score to a CRM stage label.
+
+        Thresholds:
+          score >= 80  → "qualified"  (priority follow-up, proposal-ready)
+          score >= 50  → "contacted"  (in active outreach)
+          score <  50  → "new"        (not yet worked)
+        """
         if score >= 80:
             return "qualified"
         elif score >= 50:

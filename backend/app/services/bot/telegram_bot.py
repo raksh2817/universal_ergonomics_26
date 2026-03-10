@@ -1,13 +1,23 @@
 """
 Telegram bot for warehouse inventory sync.
 
-Warehouse team sends messages like:
-  "ADD UE-EXEC-001 10"     -> adds 10 units of SKU UE-EXEC-001
-  "REMOVE UE-EXEC-001 3"   -> removes 3 units
-  "CHECK UE-EXEC-001"      -> returns current stock
-  "LOW STOCK"              -> returns all items below reorder point
+The warehouse team sends plain-text messages to a configured Telegram group.
+The bot parses those messages into structured commands and calls the internal
+inventory REST API, then replies with a confirmation or error.
 
-The bot parses these, calls the inventory API, and confirms back.
+Supported commands (case-insensitive):
+  "ADD UE-EXEC-001 10"   → adds 10 units of SKU UE-EXEC-001
+  "REMOVE UE-EXEC-001 3" → removes 3 units
+  "CHECK UE-EXEC-001"    → returns current on-hand + reserved stock
+  "LOW STOCK"            → lists all products at or below their reorder point
+
+Design notes:
+  - `parse_message` and `handle_inventory_command` are shared with the
+    WhatsApp handler (whatsapp_handler.py) so both channels use identical logic.
+  - The bot calls localhost:8000 (internal) to avoid going through the public
+    internet — both processes run on the same Docker network.
+  - `start_telegram_bot` is called as an asyncio task from main.py lifespan;
+    it runs the python-telegram-bot polling loop concurrently with FastAPI.
 """
 
 import logging
@@ -20,20 +30,32 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Backend API base URL (internal)
+# Internal FastAPI base URL — both bot and API run on the same Docker network
 API_BASE = "http://localhost:8000/api/v1"
 
-# Message patterns
+# Pre-compiled regex patterns for each supported command type.
+# Named capture groups become the structured command dict fields.
 PATTERNS = {
-    "add": re.compile(r"^ADD\s+([\w-]+)\s+(\d+)$", re.IGNORECASE),
-    "remove": re.compile(r"^REMOVE\s+([\w-]+)\s+(\d+)$", re.IGNORECASE),
-    "check": re.compile(r"^CHECK\s+([\w-]+)$", re.IGNORECASE),
-    "low_stock": re.compile(r"^LOW\s*STOCK$", re.IGNORECASE),
+    "add":       re.compile(r"^ADD\s+([\w-]+)\s+(\d+)$", re.IGNORECASE),   # ADD <SKU> <QTY>
+    "remove":    re.compile(r"^REMOVE\s+([\w-]+)\s+(\d+)$", re.IGNORECASE), # REMOVE <SKU> <QTY>
+    "check":     re.compile(r"^CHECK\s+([\w-]+)$", re.IGNORECASE),          # CHECK <SKU>
+    "low_stock": re.compile(r"^LOW\s*STOCK$", re.IGNORECASE),               # LOW STOCK (optional space)
 }
 
 
 def parse_message(text: str) -> dict:
-    """Parse a warehouse message into a structured command."""
+    """
+    Parse a warehouse message into a structured command dict.
+
+    Returns one of:
+      {"action": "add",       "sku": str, "quantity": int}
+      {"action": "remove",    "sku": str, "quantity": int}
+      {"action": "check",     "sku": str}
+      {"action": "low_stock"}
+      {"action": "unknown",   "raw": str}  ← unrecognised input
+
+    The dict is passed directly to `handle_inventory_command`.
+    """
     text = text.strip()
 
     for action, pattern in PATTERNS.items():
@@ -41,12 +63,14 @@ def parse_message(text: str) -> dict:
         if match:
             groups = match.groups()
             if action in ("add", "remove"):
+                # groups[0] = SKU, groups[1] = quantity string
                 return {"action": action, "sku": groups[0], "quantity": int(groups[1])}
             elif action == "check":
                 return {"action": action, "sku": groups[0]}
             elif action == "low_stock":
                 return {"action": "low_stock"}
 
+    # No pattern matched — return unknown so the caller can send a help message
     return {"action": "unknown", "raw": text}
 
 
